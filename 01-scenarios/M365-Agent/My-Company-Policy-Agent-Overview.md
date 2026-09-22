@@ -45,6 +45,14 @@ The agent grounds responses in **authoritative internal documents and trusted co
 
 ## How It Works
 
+**Optional external-policy companion:** Where authoritative policy lives in an external HR
+portal rather than SharePoint, [MCP Federated Connectors](../../02-patterns/MCP-Federated-Connectors/MCP-Federated-Connectors.md)
+can support live, read-only retrieval in a supported experience such as Microsoft 365 Copilot
+Chat. Qualify provider/tenant availability or a custom connector, and enforce source permissions
+for country- or role-restricted policies. This is not automatic grounding for the declarative
+agent below; retain its SharePoint/web design and portal links for transactions. No Microsoft 365
+external-data index does not remove processing and retention considerations for retrieved content.
+
 ```mermaid
 flowchart TD
     A["Employee Question\n(e.g., 'What is our PTO policy?')"]

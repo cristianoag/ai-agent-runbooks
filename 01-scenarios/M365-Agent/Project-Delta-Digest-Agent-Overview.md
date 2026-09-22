@@ -69,6 +69,15 @@ flowchart TD
 
 ## Knowledge Sources
 
+**Optional live project research:** [MCP Federated Connectors](../../02-patterns/MCP-Federated-Connectors/MCP-Federated-Connectors.md)
+can retrieve current work-item and project-document context in a supported companion experience
+such as Microsoft 365 Copilot Chat or Researcher, without a Microsoft 365 external-data index.
+Validate the specific project-tool provider, tenant, and user permissions; the sources listed
+below are not a federation gallery availability list. This does not automatically enable the
+declarative agent above. Keep its existing connector design unless host support is proven, and
+retain deterministic queries/change history for complete period deltas or metrics: live search
+alone does not guarantee an exhaustive weekly report or schedule its delivery.
+
 | Source | Description |
 |---|---|
 | 📧 Outlook | Email threads related to project communications |

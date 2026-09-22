@@ -67,6 +67,7 @@ Whether you're building your first agent or scaling across multiple business dom
 - 🔬 [Grounding & Response Quality Remediation](./02-patterns/Grounding-and-Response-Quality-Remediation/) — An ordered diagnostic ladder for agents that are built, connected, and still answering badly
 - 🚢 [Agent Publishing & Channel Deployment](./02-patterns/Agent-Publishing-and-Channel-Deployment/) — The last mile: licensing prerequisites, channel-specific behaviour, authentication, and rendering across Microsoft 365 Copilot, Teams, SharePoint, and third-party channels
 - 🔌 [MCP Server Integration](./02-patterns/MCP-Server-Integration/) — Connecting third-party systems (Salesforce, Workday, ServiceNow, Databricks, Snowflake, GitHub) to Copilot Cowork, declarative agents, Copilot Studio, and Foundry via Model Context Protocol servers, including tool design, per-user identity, dynamic tool discovery, and gateway-mediated topologies for on-premises and private-network backends (APIM, Apigee, Workato, MuleSoft)
+- 🔎 [MCP Federated Connectors](./02-patterns/MCP-Federated-Connectors/MCP-Federated-Connectors.md) — A separate pattern for live, read-only external retrieval in supported Microsoft 365 Copilot experiences without a source index, including custom connector onboarding, complex-authentication limitations, and private-only on-premises connectivity gaps
 - 🎨 [Branded Office Artifact Generation](./02-patterns/Branded-Office-Artifact-Generation/) — Making agent-generated PowerPoint, Word, and Excel output brand-compliant, factually reliable, and safe to send, using the Organization Asset Library and an entry-point × model test matrix
 - 🔄 [Copilot Studio Migration & Modernisation](./02-patterns/Copilot-Studio-Migration-and-Modernisation/) — Moving an existing conversational or automation estate onto Copilot Studio: inventory and disposition, the pre-requisite work packages that stall most migrations, parallel-run cut-over, and decommissioning
 - 🧬 [Copilot Studio & Foundry Split Architecture](./02-patterns/Copilot-Studio-and-Foundry-Split-Architecture/) — Deciding what belongs in Copilot Studio and what belongs in Foundry, how the halves communicate, and the ownership, cost, and latency consequences of the boundary
@@ -124,4 +125,3 @@ Use of Microsoft trademarks or logos in modified versions of this project must n
 Any use of third-party trademarks or logos is subject to the policies of those third parties.
 
 ---
-

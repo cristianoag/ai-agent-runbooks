@@ -78,12 +78,19 @@ flowchart LR
 | Data | Indexed into Microsoft 365 | Indexed, scoped to the user | Fetched live, never indexed |
 | Access model | Organization-level | User-level | User-level |
 | Setup | Admin configures | Admin enables, user authenticates | Admin enables, user authenticates |
-| Custom connectors | Yes | No | No |
+| Custom connectors | Yes | No | Yes — organisation-created MCP connectors with documented authentication setup |
 | Best for | Broad, stable knowledge bases | Personally relevant content | Sensitive, live, or fast-moving data |
-| Watch out for | Crawl lag, ACL fidelity | Limited coverage | Read-only, no write-back |
+| Watch out for | Crawl lag, ACL fidelity | Limited coverage | Read-only; complex auth and private-only MCP reachability require qualification |
 
 Rule of thumb: **synced for knowledge, federated for records that change by the minute or must
 not be copied.**
+
+Here, avoiding a copy means avoiding a synced external-content index, not keeping retrieved
+content out of Copilot processing. For live MCP retrieval, use the separate
+[MCP Federated Connectors pattern](../MCP-Federated-Connectors/MCP-Federated-Connectors.md) and
+[runbook](../MCP-Federated-Connectors/MCP-Federated-Connectors-Runbook.md). The crawl, ACL mapping,
+and index-count procedures below apply to synced onboarding, not federation. Supported
+federated experiences do not automatically include every consumer of the synced index.
 
 ---
 
@@ -190,7 +197,7 @@ find.
 | Some connectors cap the number of items returned per query | "Show me all my tickets" returns a partial list | Set expectations; use the source system for exhaustive lists |
 | Identity mapping defaults to email | Users without matching email keys get no results | Configure a custom mapping formula at connection time |
 | Container-level permission changes need a full crawl | Access changes appear delayed | Document the lag; schedule full crawls around known permission events |
-| On-premises sources need the Graph connector agent | An extra deployed component with its own patch cycle | Include it in vulnerability-scanning scope; expect security review on its bundled runtime |
+| Supported synced on-premises connectors use the Graph connector agent | An extra deployed component with its own patch cycle; not a federated MCP relay | Include it in vulnerability-scanning scope; qualify private MCP reachability separately |
 | Access-URL expressions are set at connection creation | Wrong citation links cannot be fixed in place | Get the URL format right the first time, or recreate the connection |
 
 ---
@@ -198,6 +205,7 @@ find.
 ## Related Patterns and Scenarios
 
 - Runbook: [Copilot-Connector-Knowledge-Onboarding-Runbook.md](Copilot-Connector-Knowledge-Onboarding-Runbook.md)
+- [MCP Federated Connectors](../MCP-Federated-Connectors/MCP-Federated-Connectors.md) — separate live, read-only retrieval path, including complex-auth and on-premises qualification gates
 - [Grounding & Response Quality Remediation](../Grounding-and-Response-Quality-Remediation/Grounding-and-Response-Quality-Remediation.md) — what to do when the content is indexed but answers are still poor
 - [Enterprise RAG Pattern](../Enterprise-RAG-Pattern/Enterprise-RAG-Pattern.md) — when Graph connectors are not enough and you need Azure AI Search
 - Scenario: [IT Service Desk Insights Agent](../../01-scenarios/IT-Service-Desk-Insights-Agent/1.Overview.md)

@@ -4,6 +4,10 @@
 > [Copilot-Connector-Knowledge-Onboarding.md](Copilot-Connector-Knowledge-Onboarding.md) first
 > to confirm the pattern applies.
 
+This runbook covers **synced/indexed** onboarding. For live MCP retrieval without a source
+index, use the separate [MCP Federated Connectors runbook](../MCP-Federated-Connectors/MCP-Federated-Connectors-Runbook.md);
+its user authentication and network acceptance gates differ from service-account crawling.
+
 ---
 
 ## Prerequisites

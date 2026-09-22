@@ -12,7 +12,7 @@
 |---|---|
 | Confirmed decision that a connector is insufficient (with evidence) | Delivery engineer |
 | Admin access to the source system, including a sandbox | Source system admin |
-| Hosting for the server (App Service, Container Apps, or equivalent) | Platform team |
+| Hosting for gateway and MCP servers (Azure, AWS, another approved cloud, or on-premises) | Platform team |
 | Network and gateway owner, if the backend is private or on-premises | Platform / network team |
 | Named owner for the server after go-live | Customer |
 | Microsoft 365 admin access for plugin deployment | M365 admin |
@@ -50,11 +50,13 @@ Do this before the identity spike, because it determines *where* the spike is de
 | Is it reachable over HTTPS from the internet today? | |
 | If not, what hybrid connectivity exists (ExpressRoute, VPN, self-hosted gateway)? | |
 | Is there an existing API gateway or integration platform? Which? | |
+| Does the MCP server itself run on-premises, or only its data source? | |
+| Which cloud/network hosts the gateway, and how does its runtime reach the MCP server? | |
 | Is there an inspecting corporate proxy in the path? | |
 
-> ⚠️ Copilot hosts call MCP servers **outbound over HTTPS**. There is no inbound relay into a
-> private network. If the backend is on-premises, the answer is a mediation layer — not an
-> exception request.
+> ⚠️ For the public remote-MCP path, the host calls the gateway **outbound over HTTPS**.
+> The gateway reaches private MCP servers through its own network connection. Connecting your
+> VNet to on-premises does not connect the Copilot SaaS host to that VNet.
 
 ### 2b. Choose the topology
 
@@ -97,13 +99,50 @@ Run the checks for whichever platform you selected.
 - [ ] No policy accesses `context.Response.Body` in the MCP server scope
 - [ ] Backend authorization header forwarding confirmed (`set-header` if needed)
 
-**Third-party gateway (Apigee, Workato, MuleSoft, Kong, AgentCore)**
+**Third-party gateway (Apigee, Workato, MuleSoft, Kong, LiteLLM, AgentCore)**
 
 - [ ] MCP protocol version supported, and reconciled with the Copilot host
 - [ ] Streaming transport supported end to end
 - [ ] Tool granularity controllable — you can expose 5–8 shaped tools, not the whole API
 - [ ] Payloads can be trimmed and fields redacted
 - [ ] OAuth flow through the organisation's identity provider validated
+
+**LiteLLM with Entra delegated identity**
+
+- [ ] Runtime image pinned; native `oauth2_token_exchange` / `entra_obo` support confirmed for that release
+- [ ] Separate Copilot client, gateway, and MCP API registrations; delegated scopes and consent on both hops
+- [ ] Custom inbound auth hook validates token A and restricts client, user, scope, and permitted MCP server; credential-override headers rejected
+- [ ] Native LiteLLM OBO configured with tenant endpoint, gateway credential, and backend `api://<backend-api-id>/.default` scope; the hook does not implement the exchange
+- [ ] Backend validates token B for its own audience and the gateway as the allowed client
+- [ ] Copilot client credential and exact generated OAuth callback configured separately from the gateway credential
+- [ ] MCP-only configuration uses `model_list: []` if model proxying is unnecessary
+- [ ] Public reverse proxy exposes only approved routes; gateway/backend ports and management routes remain private
+- [ ] Authentication, native OBO, streaming, and request-local identity isolation retested on every runtime upgrade
+
+**On-premises MCP servers via Azure VNet + site-to-site VPN**
+
+Use the [hybrid MCP topology](MCP-Server-Integration.md#on-premises-mcp-servers-through-an-azure-vnet-and-site-to-site-vpn).
+Keep the MCP server private; only the authenticated gateway is host-facing.
+
+- [ ] APIM tier/networking mode supports private outbound access, or LiteLLM compute is VNet-connected; an inbound private endpoint alone is insufficient
+- [ ] Gateway workload/integration subnet is separate from `GatewaySubnet`; APIM-specific subnet delegation, sizing, region, and NSG requirements met
+- [ ] Dedicated `GatewaySubnet`, VPN gateway, local network gateway, and S2S connection defined with the on-premises network owner
+- [ ] Compatible VPN device, peer addresses, IPsec/IKE settings, and protected VPN credentials agreed
+- [ ] VNet and on-premises address spaces do not overlap; MCP prefixes and return routes to the gateway workload subnet verified
+- [ ] Hub/spoke gateway transit and remote-gateway use configured where applicable; BGP/UDRs and firewall routing verified
+- [ ] On-premises MCP FQDN resolves to a private address from the gateway runtime via approved DNS forwarding
+- [ ] Firewalls/NSGs allow only required MCP and DNS flows, plus documented VPN/platform/identity dependencies
+- [ ] Backend HTTPS certificate hostname and chain validate from the gateway; no certificate-validation bypass
+- [ ] Independent user-token validation remains enforced on-premises; VPN access does not grant tool authorization
+- [ ] Tunnel interruption/recovery, streaming duration, latency, and safe retry behaviour tested
+
+**AWS or other-cloud hosting**
+
+- [ ] Host-facing DNS and trusted HTTPS work; tenant data policies permit the endpoint and data flow
+- [ ] Gateway and MCP network paths, identity-service egress, residency, and cross-cloud transfer/latency reviewed
+- [ ] Cloud hosting does not implicitly replace Entra delegated identity with cloud IAM or a shared API key
+- [ ] Production secrets/rotation, central logs without tokens or sensitive payloads, availability, and capacity planned
+- [ ] Single-VM shortcuts are documented as test-only; local unencrypted HTTP is not reused across hosts or over the on-premises path
 
 **Copilot Studio + VNet**
 
@@ -132,9 +171,15 @@ Before building tools, prove the path end to end with a trivial endpoint:
 | Latency through the full chain | Within budget at p95 |
 | TLS chain validates | No certificate errors |
 | DNS resolves from inside the network path | No `502`-class failures |
+| On-premises MCP route over VPN | From the gateway runtime, private DNS, TCP/HTTPS, and authenticated MCP initialization/discovery/invocation succeed; tunnel status alone is insufficient |
+| VPN interruption and recovery | Tool calls fail explicitly without public or anonymous fallback; connectivity recovers without duplicate writes |
 
 **Deliverable:** selected topology, mediation-control table, platform pre-checks completed, and
 a green connectivity spike.
+
+Record liveness/TLS/negative-auth checks separately from signed-in tool acceptance. The recorded
+AWS LiteLLM test passed the former; that is not evidence that delegated OBO or user tool calls
+passed.
 
 ---
 
@@ -149,6 +194,11 @@ The single highest-value hour in this runbook.
    Copilot Studio, or Foundry.
 4. Invoke it as a **normal pilot user**, not as the developer.
 5. Record the result.
+
+For a gateway/OBO design, verify token A targets the gateway and token B targets the MCP API,
+with the gateway as B's calling client. Inspect claims safely without retaining raw tokens.
+Run two different users, including concurrent requests, to prove that identity does not leak
+between requests. Reject missing, expired, wrong-audience, wrong-client, or app-only tokens.
 
 | Host / surface | Identity received | Per-user? |
 |---|---|---|
@@ -263,7 +313,10 @@ Before it touches an agent.
 
 ## Step 8 — Register and Connect
 
-1. Package the plugin manifest pointing at the server.
+1. Use the target host's registration mechanism: package a plugin manifest where required, or
+   add an MCP tool connection in Copilot Studio. For a gateway topology, point it at the
+   gateway's public MCP route, not the private backend. In the Entra/LiteLLM path, request the
+   gateway scope and register Copilot Studio's exact generated OAuth callback before user sign-in.
 2. Deploy through the **admin path** so it is governed and inventoried, not user-installed.
 3. Scope availability to the pilot group.
 4. Verify visibility for a pilot user who is not you — plugin discoverability has been
@@ -305,6 +358,7 @@ Standalone tool tests do not tell you how the agent uses them.
 | Repeat a failed multi-step task | Duplicates created? Idempotency working? |
 | Same question three times | Consistency of tool selection |
 | Run as a restricted user | Permission enforcement end to end |
+| Two users invoking the gateway concurrently | Native OBO and MCP request identity remain scoped to the correct user |
 | An input the tool will reject | Is the error surfaced usefully to the user? |
 
 Log what the model *tried to call*, not just what succeeded. Most tool-selection problems are
@@ -319,6 +373,7 @@ invisible from the chat surface.
 |---|---|
 | Server availability, latency, error-rate monitoring | Platform team |
 | Secret and certificate lifecycle | Platform team |
+| VNet/VPC routes, private DNS, VPN health and recovery | Platform / network team |
 | Source-system integration account and its permissions | Source system admin |
 | Tool catalogue and versioning discipline | Delivery engineer → customer engineering |
 | Re-running the evaluation set on each deployment | Customer engineering |

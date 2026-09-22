@@ -30,6 +30,9 @@ organised by the delivery question you are trying to answer rather than by produ
 | Resource | Use it for |
 |---|---|
 | [Copilot connectors overview](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/overview) | Synced vs federated vs personal connectors, and when to use each |
+| [Federated connectors overview](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/federated-connectors-overview) | Live read-only MCP retrieval, supported Copilot experiences, and source-user permissions |
+| [Set up custom federated connectors](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/set-up-custom-federated-connectors) | Organisation-created MCP connections with Entra SSO, OAuth 2.0, or No Auth |
+| In this repo: [MCP Federated Connectors](../02-patterns/MCP-Federated-Connectors/MCP-Federated-Connectors.md) | Separate federation pattern: complex-authentication gaps, private-only MCP blockers, and qualification runbook |
 | [Set up connectors in the admin center](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/deployment-overview) | Deployment mechanics and crawl guidance |
 | [Deploy the ServiceNow Knowledge connector](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/servicenow-knowledge-deployment) | The most-used third-party connector in this domain |
 | [Set up ServiceNow for connector ingestion](https://learn.microsoft.com/en-us/microsoft-365/copilot/connectors/servicenow-knowledge-admin-setup) | Source-side prerequisites, roles, and hierarchical permissions |

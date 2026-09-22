@@ -63,6 +63,22 @@ late.
 
 ---
 
+### Federated MCP Connector Qualification Gaps
+
+Checked against the Microsoft Learn federation overview and custom setup on September 22, 2026.
+These concern **Microsoft 365 federated connectors**, not every MCP client or Copilot Studio
+connection. See the separate [MCP Federated Connectors pattern](../02-patterns/MCP-Federated-Connectors/MCP-Federated-Connectors.md)
+for references and acceptance criteria.
+
+| # | Limitation | Impact | Design response |
+|---|---|---|---|
+| F1 | 🔴 Documented Entra SSO/OAuth setup is not a general-purpose custom-auth broker | Multi-hop delegation, provider extensions, legacy auth, or client-certificate requirements can block onboarding | Confirm support or engineer an approved adapter; test actual-host sign-in, refresh, source authorization, and user isolation |
+| F2 | 🔴 No private-network attachment or arbitrary on-premises MCP relay is documented in federation setup | Private-only MCP servers remain unreachable; a VNet-to-on-prem VPN alone does not connect Copilot SaaS | Qualify a public authenticated gateway with private backhaul, or choose another architecture if public ingress is prohibited |
+| F3 | 🟠 Federation is read-only and experience-specific | Writes and automatic access from every custom agent/channel cannot be assumed | Validate the target Copilot experience; preserve separate action and orchestration paths |
+| F4 | 🟠 No source index is not the same as no data leaving the source | Retrieved evidence still enters Copilot processing and responses | Review processing, audit, residency, and applicable retention; do not claim zero data movement |
+
+---
+
 ## 4. Response Quality
 
 | # | Limitation | Impact | Design response |

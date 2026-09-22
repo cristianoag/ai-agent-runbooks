@@ -116,10 +116,11 @@ and its own version constraints — see the authentication section.
 
 ### The constraint to design around
 
-Copilot hosts call an MCP server **outbound over HTTPS from the Microsoft cloud**. The server
-must be reachable from there. There is no equivalent of the on-premises connector agent for MCP,
-and there is no inbound relay that lets a Copilot host reach a server sitting inside a corporate
-network.
+For the public remote-MCP path in topologies A–C, Copilot hosts call an endpoint **outbound
+over HTTPS from the Microsoft cloud**. That endpoint can be a gateway; the MCP servers behind
+it need not be public. A VPN from your Azure VNet to on-premises does not, by itself, give the
+Copilot SaaS host access to that VNet. The gateway needs private outbound connectivity to the
+MCP servers. Do not confuse this with the Power Platform connector path in topology D.
 
 That single fact shapes every enterprise integration in this pattern, because the systems worth
 integrating — core banking, policy administration, ERP, MES, clinical systems — are very often
@@ -156,17 +157,18 @@ flowchart LR
     HOST["Copilot host<br/>Cowork · declarative agent<br/>Copilot Studio · Foundry"]
 
     subgraph T1["A — Cloud-native MCP server"]
-        S1["MCP server in Azure<br/>public HTTPS endpoint"]
+        S1["MCP server in a public cloud<br/>(Azure, AWS, or other)<br/>public HTTPS endpoint"]
     end
 
     subgraph T2["B — Gateway-mediated (recommended)"]
-        GW["API gateway / MCP gateway<br/>APIM · Apigee · Workato<br/>MuleSoft · Kong · AgentCore"]
+        GW["API gateway / MCP gateway<br/>APIM · Apigee · Workato<br/>MuleSoft · Kong · LiteLLM · AgentCore"]
         BE1[("Backend API<br/>cloud or private")]
     end
 
     subgraph T3["C — Private-network backend"]
-        GW2["Gateway with hybrid<br/>connectivity"]
-        VPN["ExpressRoute / VPN /<br/>self-hosted gateway"]
+        GW2["Gateway with private<br/>outbound connectivity"]
+        VPN["VNet + site-to-site VPN<br/>or ExpressRoute"]
+        MCP2["Private MCP server"]
         BE2[("On-premises system")]
     end
 
@@ -179,7 +181,7 @@ flowchart LR
 
     HOST --> S1
     HOST --> GW --> BE1
-    HOST --> GW2 --> VPN --> BE2
+    HOST --> GW2 --> VPN --> MCP2 --> BE2
     CS --> CC --> SUB --> BE3
 
     style GW fill:#0078d4,color:#fff,stroke:#005a9e
@@ -192,11 +194,19 @@ flowchart LR
 |---|---|---|
 | **A — Cloud-native MCP server** | Backend is already cloud-reachable; you want full control of tool shaping | You build and operate everything, including policy |
 | **B — Gateway-mediated** | You have existing APIs and a gateway; you want policy centralised | Gateway becomes a dependency and a version constraint |
-| **C — Private-network backend behind a gateway** | The system of record is on-premises | Hybrid connectivity to build and run; latency budget matters |
+| **C — Private-network backend behind a gateway** | The MCP server itself, or its system of record, is on-premises | Gateway outbound VNet connectivity plus VPN or ExpressRoute; private DNS, return routes, and latency matter |
 | **D — Copilot Studio + VNet subnet delegation** | The agent can live in Copilot Studio and you need private outbound connectivity | Not an MCP plugin path for Microsoft 365 Copilot; scoped to Power Platform |
 
 Topologies B and C are the same architecture with a different backhaul. In practice, most
 regulated enterprises land on C.
+
+The gateway and MCP compute in topologies A–C are not tied to Azure: they can run in AWS,
+Google Cloud, or another approved environment. The host-facing endpoint must be reachable over
+trusted HTTPS, with compatible MCP transport, authentication, and tenant policies. Private MCP
+servers can remain behind that endpoint. Topology D's Power Platform VNet integration is
+Azure-specific; other-cloud backends still need supported connectivity. See
+[Hosting the Gateway and MCP Servers on Other Clouds](#hosting-the-gateway-and-mcp-servers-on-other-clouds)
+below.
 
 ### Azure API Management as the MCP gateway
 
@@ -241,6 +251,7 @@ APIs for agent consumption:
 | **Workato** | Integration-platform-led organisations; recipe-based connectivity and an on-premises agent | How tools are shaped and bounded; whether payloads can be trimmed |
 | **MuleSoft** | Existing API-led connectivity programmes | Same — tool granularity and payload shaping |
 | **Kong / other API gateways** | Kubernetes-centric platform teams | MCP transport support (streaming), auth flows |
+| **LiteLLM** | Self-hosted MCP gateway, optionally alongside model proxying; no model provider required for MCP-only use | Pinned release's native Entra OBO configuration, custom inbound-token validation, and host/transport compatibility |
 | **AWS AgentCore MCP Gateway** | Multi-cloud estates standardising an MCP catalog | Protocol version parity with the Copilot host |
 
 **The single most important check across all of them is protocol version.** Modern
@@ -250,6 +261,39 @@ authentication with no version diagnostic. This has blocked real enterprise arch
 the gateway, the custom MCP servers, and the backends were all correct.
 
 Reconcile the version across **host → gateway → server** before writing a single tool.
+
+### LiteLLM as a self-hosted MCP gateway
+
+The documented Copilot Studio integration uses LiteLLM as an MCP-only gateway, with a custom
+Entra authentication hook and **native LiteLLM On-Behalf-Of (OBO) token exchange**. It does not
+require model proxying. Keep inbound validation and downstream token exchange separate:
+
+| Item | What was true in practice |
+|---|---|
+| **Custom inbound validation** | The `custom_auth` hook validates token A's signature, issuer, audience, lifetime, tenant, token version, delegated scope, allowed client, and user identity. It rejects credential-override headers and restricts the permitted MCP server. It does **not** perform OBO |
+| **Native Entra OBO** | The pinned runtime is configured with `auth_type: oauth2_token_exchange` and `token_exchange_profile: entra_obo`, the tenant token endpoint, gateway client credential, and backend `api://<backend-api-id>/.default` scope. LiteLLM exchanges token A for backend token B |
+| **The backend still validates independently** | The MCP server behind the gateway does not trust the gateway blindly — it validates the token it receives (audience, issuer, expected client) on its own. The gateway hop does not replace backend-side auth |
+| **Version pinning matters more here than with a managed gateway** | Because the auth hook reaches into LiteLLM's internal request-handling API, a LiteLLM upgrade can silently break the hook. Pin the image by digest, and re-test the hook against every upgrade before rolling it out |
+| **`model_list` can be empty** | When LiteLLM is used purely as an MCP gateway — no LLM calls proxied through it — its model configuration can be left empty. It is being used for its request-handling, auth-hook, and MCP-routing pipeline, not its model-proxy features |
+| **TLS termination is a separate concern** | Caddy exposes the approved MCP route over trusted HTTPS and forwards it to LiteLLM; LiteLLM calls the private MCP backend. Neither application's port is published. Management routes are blocked; an anonymous liveness route is not anonymous tool access |
+
+Three separate Entra registrations establish the boundaries:
+
+| Registration | Role |
+|---|---|
+| Copilot OAuth client | Signs in the connection user and requests the gateway's delegated scope; token A targets the gateway |
+| LiteLLM gateway | Validates token A, then uses its own credential and delegated permission to obtain token B for the MCP API |
+| MCP backend API | Validates token B independently, including its own audience and the gateway as the allowed calling client, not the Copilot client |
+
+Configure delegated consent on both hops and register the exact callback generated by Copilot
+Studio on the OAuth client. Keep the Copilot client credential separate from the gateway OBO
+credential. Do not forward token A unchanged to an API with a different audience or substitute
+an app-only token for delegated identity.
+
+**Do:** test the custom validator, native exchange configuration, backend validation, and
+request-local identity isolation separately, then prove signed-in discovery and invocation from
+the intended host. Pin the runtime and retest on upgrades; the configuration above describes the
+documented version, not a guarantee for every LiteLLM release.
 
 ### Reaching on-premises backends
 
@@ -283,6 +327,124 @@ Constraints that trip up the Copilot Studio + VNet route specifically:
 And for the on-premises data gateway: updates are **not** installed automatically and ship
 monthly, and the recovery key set at install is required to relocate or restore it. Both are
 handover items, not footnotes.
+
+### On-premises MCP servers through an Azure VNet and site-to-site VPN
+
+This is topology C with the **MCP servers themselves on-premises**, not just their data sources.
+Keep the MCP endpoints on private addresses. Publish only the authenticated gateway endpoint
+that the Copilot host can reach, and connect the gateway's outbound network to on-premises:
+
+```mermaid
+flowchart LR
+    Host["Copilot host"] -->|"Public HTTPS + access token"| GW
+    subgraph Azure["Azure VNet-connected gateway path"]
+        GW["MCP gateway<br/>APIM with supported VNet mode<br/>or self-hosted LiteLLM + HTTPS ingress"]
+        VPN["Azure VPN Gateway<br/>GatewaySubnet"]
+        GW -->|"Private outbound route"| VPN
+    end
+    subgraph Prem["On-premises network"]
+        Edge["VPN device / firewall"]
+        MCP["Private MCP servers<br/>HTTPS + token validation"]
+        Data[("Systems of record")]
+        Edge --> MCP --> Data
+    end
+    VPN <-->|"Site-to-site IPsec / IKE VPN"| Edge
+```
+
+The MCP gateway proxies application requests; **Azure VPN Gateway only transports network
+traffic**. It does not discover tools, validate OAuth tokens, or replace an MCP gateway. A
+point-to-site VPN on a developer laptop does not provide this service-to-service path.
+
+| Design area | Required decision or check |
+|---|---|
+| Gateway network attachment | For APIM, select a tier **and networking mode** supporting private outbound access, such as Standard v2/Premium v2 outbound VNet integration or classic Developer/Premium external VNet injection. MCP support alone does not imply VNet support; Developer is not a production tier. For LiteLLM, use VNet-connected compute with private routes and controlled HTTPS ingress |
+| Subnet separation | Keep the MCP gateway workload/integration subnet separate from `GatewaySubnet`. APIM v2 outbound integration requires a dedicated delegated subnet in the same region/subscription, sized and secured according to its networking requirements |
+| VPN resources | Dedicated `GatewaySubnet`, Azure VPN Gateway, a local network gateway representing the on-premises peer/prefixes, and an S2S connection to a compatible VPN device with agreed IPsec/IKE settings |
+| Addressing and routing | Non-overlapping address spaces; advertised/static routes to the MCP subnets and return routes to the gateway workload subnet. Check BGP propagation, UDRs, and any firewall/NAT effects on the source address |
+| Hub-and-spoke | If the VPN terminates in a hub, configure gateway transit on the hub peering and use of the remote gateway on the spoke where supported. Peering alone is not transitive routing |
+| Private DNS | Resolve on-premises MCP FQDNs from the actual gateway runtime using approved DNS forwarding, for example Azure DNS Private Resolver outbound rules to on-premises DNS. Permit DNS traffic and use hostnames matching backend certificates |
+| Firewall scope | Permit only the required gateway-to-MCP HTTPS destinations/ports and DNS flows; separately permit VPN establishment at the perimeter. Preserve required platform/identity egress. Do not publish MCP listener ports to the internet |
+| TLS and identity | Use HTTPS to each on-premises MCP server with hostname and chain validation. Configure backend CA trust where the gateway supports it; never disable validation. The VPN does not replace per-user authorization, audience checks, or OBO where required |
+| Operations | Monitor tunnel/BGP state, DNS, gateway errors, and tool latency. Test tunnel interruption/recovery, streaming timeouts, and idempotent retries; plan gateway and VPN resilience for production |
+
+An **inbound private endpoint on APIM is not outbound VNet integration**. It neither creates a
+route to on-premises nor makes a private-only gateway reachable by a public Copilot host. Keep
+the host-facing ingress and private backend connectivity as separate design decisions.
+
+This gateway-mediated path does not require Power Platform subnet delegation: the gateway,
+not Copilot Studio, uses the VPN. Topology D remains a separate connector-specific option.
+For an AWS-hosted gateway, the analogous design uses a VPC-connected runtime and AWS
+Site-to-Site VPN (or Direct Connect); do not assume the single-VM Lightsail test below already
+provides that hybrid path.
+
+### Hosting the Gateway and MCP Servers on Other Clouds
+
+The gateway, reverse proxy, and MCP servers can run on Azure, AWS, Google Cloud, or other
+approved infrastructure, together or in different networks with explicit connectivity. Hosting
+location and identity provider are independent decisions: in this Entra-based design, moving
+compute to AWS does not require replacing Entra with AWS IAM or Cognito. Reachability alone is
+not sufficient; transport, authentication, tenant data policies, residency, latency, and
+cross-cloud data-transfer costs also need review.
+
+This came up concretely with **LiteLLM as the MCP gateway hosted on AWS**, standing in front of
+an MCP server on the same host, both reachable only through a TLS-terminating reverse proxy:
+
+```mermaid
+flowchart LR
+    Copilot["Copilot Studio"] -->|"HTTPS + Entra token A"| Proxy
+    subgraph Cloud["AWS Lightsail test VM"]
+        Proxy["Reverse proxy<br/>(TLS termination, e.g. Caddy)"] -->|internal HTTP| GW["LiteLLM gateway<br/>+ custom Entra auth hook"]
+        GW -->|"internal HTTP + token B"| Srv["MCP server"]
+    end
+    Copilot <-->|"OAuth sign-in"| Entra["Microsoft Entra ID"]
+    GW <-->|"Native OBO / signing keys"| Entra
+    Srv -->|"Fetch signing keys; validate B locally"| Entra
+
+    style Cloud fill:#fff4e6,stroke:#e07000
+```
+
+The documented test used Docker Compose on one Amazon Lightsail VM. Internal proxy-to-gateway
+and gateway-to-MCP hops used **unencrypted HTTP on that same host**, with independent token
+validation; that shortcut must not be carried into cross-host or on-premises connections.
+
+**Evidence as of September 14, 2026:** both applications were healthy, trusted HTTPS and
+TLS 1.2/1.3 worked, HTTP redirected to HTTPS, private backend connectivity passed, and public
+missing/invalid-token requests and unapproved routes were rejected. **Still pending:** Copilot
+client credential/callback completion, real delegated OBO, signed-in tool discovery/invocation,
+two-user isolation through Copilot, and load acceptance. Health checks establish deployment
+readiness, not successful end-to-end delegated access.
+
+On the small test host, LiteLLM's first startup took about four minutes with substantial swap
+activity. Allow an appropriate startup grace period, but measure memory and latency under real
+OBO traffic before sizing production; healthy idle containers do not prove concurrent capacity.
+
+Reasons a team ends up here rather than on Azure:
+
+- **Existing footprint.** The team's infrastructure, observability, and operational muscle
+  memory are already on another cloud, and the MCP server is one more workload on that estate
+  rather than a reason to add a second cloud.
+- **Cost of a throwaway test.** A single low-cost VM running the gateway, the MCP server, and a
+  TLS-terminating reverse proxy as containers is enough to validate the identity flow end to end
+  before committing to a production-grade managed gateway anywhere.
+- **Platform standardisation.** If LiteLLM (or another self-hosted gateway) is already the
+  organisation's standard AI gateway, keeping the MCP path on the same product and the same cloud
+  avoids a second policy surface to operate.
+
+What does **not** change when the hosting cloud changes:
+
+| Still true regardless of hosting cloud | Why |
+|---|---|
+| The backend validates its own tokens | The gateway hop is a policy point, not a trust boundary the backend can skip |
+| Protocol version must reconcile across host → gateway → server | This is an MCP-protocol constraint, not a cloud constraint |
+| Secrets need a managed store, not a file on disk | A single-VM test setup with a root-protected secret file is acceptable for a bounded test; it is not an operating model |
+| Everything not explicitly exposed should be blocked at the proxy | Same "curated public surface" principle as Topology B/C above |
+| A named owner runs it | Moving cloud does not remove the operating burden discussed later in this pattern |
+
+What is a **deliberate simplification for a low-cost test**, and should not be read as the target
+state: one VM for everything, no autoscaling or high availability, no managed secret store, and
+local log rotation instead of a centralised logging service. Treat this as a fast way to prove
+the delegated-identity path works, then decide separately whether the production home for that
+gateway is a managed cloud service (on any provider) rather than a single host.
 
 ### Corporate proxy and egress
 
@@ -446,6 +608,21 @@ connected to their agent.
 **Lesson:** enumerate the tools the host actually resolves, in the host, before designing around
 documentation. What the docs describe and what a given host surfaces are not always the same set.
 
+### Scenario F — LiteLLM gateway, hosted off-Azure, for a Copilot Studio agent
+A financial-services team wanted Copilot Studio's agent talking to an MCP server through
+LiteLLM on AWS, using each connection user's Entra identity end to end. The implementation
+separated a custom inbound-token validator from native LiteLLM OBO, with independent validation
+at the MCP API. Caddy, LiteLLM, and the MCP server were deployed together on a Lightsail test VM.
+Hosting outside Azure did not require changing the identity provider.
+
+**Result:** HTTPS, application health, private connectivity, and negative-auth checks passed.
+Signed-in OBO, tool invocation, two-user isolation, and load acceptance were not yet established
+in the recorded AWS results.
+
+**Lesson:** distinguish infrastructure readiness from delegated-identity acceptance. Treat the
+custom validator as tested software and native OBO as versioned configuration. Choose the
+hosting cloud independently of identity, and do not present a single-host test as production HA.
+
 ---
 
 ## When to Use / Avoid
@@ -533,24 +710,21 @@ Once it is in a business workflow, it is production.
 - [Securing outbound connections from Power Platform (whitepaper)](https://learn.microsoft.com/en-us/power-platform/admin/virtual-network-support-whitepaper)
 - [On-premises data gateway for Power Platform](https://learn.microsoft.com/en-us/power-platform/admin/wp-onpremises-gateway)
 - [Azure ExpressRoute](https://learn.microsoft.com/en-us/azure/expressroute/)
+- [APIM virtual networking options](https://learn.microsoft.com/en-us/azure/api-management/virtual-network-concepts) — choose inbound and outbound capabilities separately
+- [APIM outbound VNet integration](https://learn.microsoft.com/en-us/azure/api-management/integrate-vnet-outbound)
+- [Azure site-to-site VPN setup](https://learn.microsoft.com/en-us/azure/vpn-gateway/tutorial-site-to-site-portal)
+- [VPN gateway transit for VNet peering](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-peering-gateway-transit)
+- [Azure DNS Private Resolver](https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview)
 - [Hub-spoke network topology in Azure](https://learn.microsoft.com/en-us/azure/architecture/networking/architecture/hub-spoke)
 - [Apigee documentation](https://cloud.google.com/apigee/docs) *(non-Microsoft)*
 - [Workato documentation](https://docs.workato.com/) *(non-Microsoft)*
 - [MuleSoft Anypoint Platform](https://docs.mulesoft.com/) *(non-Microsoft)*
 
-### Gateway and hybrid connectivity
+### Self-hosted gateways and other-cloud hosting
 
-- [MCP server support in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/mcp-server-overview)
-- [Expose a REST API as an MCP server (APIM)](https://learn.microsoft.com/en-us/azure/api-management/export-rest-mcp-server)
-- [Expose an existing MCP server through APIM](https://learn.microsoft.com/en-us/azure/api-management/expose-existing-mcp-server) — the on-premises path
-- [Secure access to MCP servers (APIM)](https://learn.microsoft.com/en-us/azure/api-management/secure-mcp-servers)
-- [AI gateway capabilities in APIM](https://learn.microsoft.com/en-us/azure/api-management/genai-gateway-capabilities)
-- [APIM policies reference](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-policies)
-- [Azure Virtual Network support for Power Platform](https://learn.microsoft.com/en-us/power-platform/admin/vnet-support-overview)
-- [Securing outbound connections from Power Platform (whitepaper)](https://learn.microsoft.com/en-us/power-platform/admin/virtual-network-support-whitepaper)
-- [On-premises data gateway for Power Platform](https://learn.microsoft.com/en-us/power-platform/admin/wp-onpremises-gateway)
-- [Azure ExpressRoute](https://learn.microsoft.com/en-us/azure/expressroute/)
-- [Hub-spoke network topology in Azure](https://learn.microsoft.com/en-us/azure/architecture/networking/architecture/hub-spoke)
-- [Apigee API management](https://cloud.google.com/apigee/docs) *(non-Microsoft)*
-- [Workato platform documentation](https://docs.workato.com/) *(non-Microsoft)*
-- [MuleSoft Anypoint Platform](https://docs.mulesoft.com/) *(non-Microsoft)*
+- [LiteLLM documentation](https://docs.litellm.ai/) *(non-Microsoft)* — proxy/gateway configuration, including custom auth hooks
+- [LiteLLM MCP support](https://docs.litellm.ai/docs/mcp) *(non-Microsoft)*
+- [Microsoft identity platform: On-Behalf-Of flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow) — delegated exchange between the gateway and downstream API
+- [AWS Lightsail documentation](https://docs.aws.amazon.com/lightsail/) *(non-Microsoft)* — low-cost single-VM hosting for a gateway + MCP server test
+- [AWS AgentCore MCP Gateway](https://docs.aws.amazon.com/bedrock-agentcore/) *(non-Microsoft)*
+- [Caddy documentation](https://caddyserver.com/docs/) *(non-Microsoft)* — automatic HTTPS reverse proxy, cloud-agnostic

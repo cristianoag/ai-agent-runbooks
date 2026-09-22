@@ -224,6 +224,16 @@ const PATTERNS = [
     status: "Available"
   },
   {
+    id: "MCP-Federated-Connectors",
+    file: "MCP-Federated-Connectors/MCP-Federated-Connectors.md",
+    title: "MCP Federated Connectors",
+    icon: "🔎",
+    theme: "Grounding & Knowledge",
+    desc: "Live, read-only external retrieval in supported Microsoft 365 Copilot experiences without a source index. Gallery and custom onboarding, complex-authentication gaps, private-only on-premises blockers, and host-level acceptance.",
+    tech: ["Copilot Connectors", "MCP Server", "Microsoft 365 Copilot", "Microsoft Entra", "OAuth 2.0"],
+    status: "Available"
+  },
+  {
     id: "Agent-Governance-and-Rollout-Control-Plane",
     file: "Agent-Governance-and-Rollout-Control-Plane/Agent-Governance-and-Rollout-Control-Plane.md",
     title: "Agent Governance & Rollout Control Plane",

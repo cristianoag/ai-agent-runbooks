@@ -272,6 +272,10 @@ not as an assumed final step. Generation is where a working agent turns into a d
 - [Grounding & Response Quality Remediation](../Grounding-and-Response-Quality-Remediation/Grounding-and-Response-Quality-Remediation.md) — fidelity problems upstream of the artifact
 - [Agent Publishing & Channel Deployment](../Agent-Publishing-and-Channel-Deployment/Agent-Publishing-and-Channel-Deployment.md)
 - Scenario: [CRM Account Planning Cowork Agent](../../01-scenarios/CRM-Account-Planning-Cowork-Agent/1.Overview.md)
+- Scenario: [Chief of Staff Cowork Agent](../../01-scenarios/Chief-of-Staff-Cowork-Agent/1.Overview.md) — existing-template leadership briefs and review packs; validate generated files separately from outlines
+- Scenario: [Recurring Analytics Cowork Agent](../../01-scenarios/Recurring-Analytics-Cowork-Agent/1.Overview.md) — optional Office exports of accepted reviews; base Markdown/HTML output is not a new branded BI portal
+- [Cowork Skill Delivery and Scheduled Reviews](../Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md) — skill/reference lifecycle and approved recurrence
+- [Governed Analytics Review](../Governed-Analytics-Review/Governed-Analytics-Review.md) — reconcile metric values before generating artifacts
 
 ---
 

@@ -35,6 +35,18 @@ Each scenario folder is self-contained and follows a standardized structure so t
 │   ├── 2.Architecture.md
 │   ├── 3.Runbook.md
 │   └── 4.Sample-prompts.md
+├── 📂 Chief-of-Staff-Cowork-Agent/        ← ✅ Available
+│   ├── 📂 0.Resources/
+│   ├── 1.Overview.md
+│   ├── 2.Architecture.md
+│   ├── 3.Runbook.md
+│   └── 4.Sample-prompts.md
+├── 📂 Recurring-Analytics-Cowork-Agent/   ← ✅ Available
+│   ├── 📂 0.Resources/
+│   ├── 1.Overview.md
+│   ├── 2.Architecture.md
+│   ├── 3.Runbook.md
+│   └── 4.Sample-prompts.md
 ├── 📂 Client-Meeting-Preparation-Agent/    ← ✅ Available
 │   ├── 📂 0.Resources/
 │   ├── 1.Overview.md
@@ -153,14 +165,20 @@ Below is the standard structure, using **HR Onboarding Agent** as the reference 
 | `1.Overview.md` | Business context, objectives, target users, key capabilities, and expected outcomes of the agent scenario |
 | `2.Architecture.md` | Solution architecture diagrams, technology stack, integration points, and data flow |
 | `3.Runbook.md` | Step-by-step implementation instructions covering configuration, development, testing, and deployment |
-| `4.Sample-prompts.md` | Validated prompt examples for agent topics, trigger phrases, and conversation flows |
+| `4.Sample-prompts.md` | Prompt examples, expected behaviour and validation status for topics, trigger phrases, and conversation flows |
 
 ---
 
 ## 📋 Currently Supported Scenarios
 
+For the two configuration-first Cowork scenarios below, **Available** means the documentation
+and starter archives are available in each scenario's resource folder. Tenant deployment and
+acceptance are not implied; review package-specific prerequisites before installation.
+
 | Scenario | Type | Description | Platform | Status |
 |----------|------|-------------|----------|--------|
+| [Chief-of-Staff-Cowork-Agent](./Chief-of-Staff-Cowork-Agent/) | Leadership Productivity / Executive Readiness | Five configured skills for weekly briefs, executive drafts, leadership packs and observable team-work digests; draft-first approvals, people safety and optional recurring preparation. | Microsoft 365 Copilot Cowork, Outlook, Teams, SharePoint, OneDrive | ✅ Available |
+| [Recurring-Analytics-Cowork-Agent](./Recurring-Analytics-Cowork-Agent/) | Business Analytics / Recurring Reviews | Six configured skills: one router and five consolidated Sales, Finance, Retail, Manufacturing and Service reviews from approved sources; KPI reconciliation, RLS, Markdown and HTML outputs. | Microsoft 365 Copilot Cowork, Power BI, Microsoft Fabric, Excel Online | ✅ Available |
 | [Autonomous-Invoice-Orchestration-Ageny](./Autonomous-Invoice-Orchestration-Agent/) | Payment Approval Automation | Automates the payment request and approval process.| Microsoft Copilot Studios, Power Automate|✅ Available |
 | [Copilot-License-Lifecycle-Agent](./Copilot-License-Lifecycle-Agent/) | IT Operations / FinOps for Copilot | Copilot Studio agent that manages the Microsoft 365 Copilot licence estate — inventory, dormancy detection, notification and reclaim with approvals, and waitlist management — with a full audit trail in Dataverse. Also works well as a Copilot Studio enablement asset for customer teams. | Microsoft Copilot Studio, Power Automate, Microsoft Graph, Dataverse | ✅ Available |
 | [CRM-Account-Planning-Cowork-Agent](./CRM-Account-Planning-Cowork-Agent/) | Sales Productivity / Revenue Operations | Copilot Cowork connected to the CRM through a purpose-built MCP server that exposes custom objects and composed queries the standard connector cannot reach. Produces branded account plans, QBR decks, and pipeline models as Office artifacts, with approval gates on write-back. | Microsoft 365 Copilot Cowork, MCP server, Salesforce, Organization Asset Library | ✅ Available |

@@ -10,6 +10,24 @@ const BLOB = REPO + "/blob/main";
 
 const SCENARIOS = [
   {
+    id: "Chief-of-Staff-Cowork-Agent",
+    title: "Chief of Staff Cowork Agent",
+    type: "Leadership Productivity / Executive Readiness",
+    icon: "🗓️",
+    desc: "Five configured Cowork skills for weekly leadership briefs, stakeholder drafts, review packs and factual team-work visibility. Draft-first approvals, people-safety boundaries and optional user-owned scheduled preparation.",
+    tech: ["Microsoft 365 Copilot Cowork", "Outlook", "Microsoft Teams", "SharePoint", "OneDrive"],
+    status: "Available"
+  },
+  {
+    id: "Recurring-Analytics-Cowork-Agent",
+    title: "Recurring Analytics Cowork Agent",
+    type: "Business Analytics / Recurring Reviews",
+    icon: "📊",
+    desc: "One router and five consolidated Sales, Finance, Retail, Manufacturing and Service skills. Review existing Power BI, Fabric or Excel data with explicit source binding, reconciled KPIs, RLS checks and Markdown/HTML outputs.",
+    tech: ["Microsoft 365 Copilot Cowork", "Power BI", "Microsoft Fabric", "Excel Online"],
+    status: "Available"
+  },
+  {
     id: "Autonomous-Invoice-Orchestration-Agent",
     title: "Autonomous Invoice Orchestration Agent",
     type: "Payment Approval Automation",
@@ -183,6 +201,26 @@ const SCENARIOS = [
 ];
 
 const PATTERNS = [
+  {
+    id: "Cowork-Skill-Delivery-and-Scheduled-Reviews",
+    file: "Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md",
+    title: "Cowork Skill Delivery and Scheduled Reviews",
+    icon: "🔁",
+    theme: "Delivery & Deployment",
+    desc: "Trusted skill/reference packaging, routing, tenant qualification, controlled sharing and optional user-owned scheduled draft preparation, with acceptance gates, cost ownership and rollback.",
+    tech: ["Microsoft 365 Copilot Cowork", "OneDrive", "Skills", "Plugins"],
+    status: "Available"
+  },
+  {
+    id: "Governed-Analytics-Review",
+    file: "Governed-Analytics-Review/Governed-Analytics-Review.md",
+    title: "Governed Analytics Review",
+    icon: "📊",
+    theme: "Grounding & Knowledge",
+    desc: "Explicit source and KPI contracts, period/filter/units reconciliation, RLS and generated-artifact access checks. Consistent narrative, tables and dashboard outputs grounded in authoritative measures.",
+    tech: ["Microsoft 365 Copilot Cowork", "Power BI", "Microsoft Fabric", "Excel Online"],
+    status: "Available"
+  },
   {
     id: "Enterprise-RAG-Pattern",
     file: "Enterprise-RAG-Pattern/Enterprise-RAG-Pattern.md",
@@ -360,6 +398,6 @@ const RUNBOOK_ANATOMY = [
   { file: "1.Overview.md", desc: "Business context, objectives, target users, key capabilities and expected outcomes." },
   { file: "2.Architecture.md", desc: "Solution architecture diagrams, technology stack, integration points and data flow." },
   { file: "3.Runbook.md", desc: "Step-by-step implementation covering configuration, development, testing and deployment." },
-  { file: "4.Sample-prompts.md", desc: "Validated prompt examples for agent topics, trigger phrases and conversation flows." },
+  { file: "4.Sample-prompts.md", desc: "Prompt examples, expected behaviour and validation status for topics, trigger phrases and conversation flows." },
   { file: "0.Resources/", desc: "Supporting assets — images, diagrams and reference files used within the scenario." }
 ];

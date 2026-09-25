@@ -208,7 +208,15 @@ rather than claiming guarantees the platform does not make.
 
 ## Related Patterns and Scenarios
 
+For Cowork skills/plugins, distinguish approved package sharing from source permissions and
+permission to act. Inventory trusted package/reference versions and user-owned schedules;
+verify the actual tenant's installation, sharing, update and revocation controls rather than
+assuming every agent-management control applies unchanged.
+
 - Runbook: [Agent-Governance-and-Rollout-Control-Plane-Runbook.md](Agent-Governance-and-Rollout-Control-Plane-Runbook.md)
+- [Cowork Skill Delivery and Scheduled Reviews](../Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md)
+- Scenario: [Chief of Staff Cowork Agent](../../01-scenarios/Chief-of-Staff-Cowork-Agent/1.Overview.md) — leader/delegate scope and people-safety boundaries
+- Scenario: [Recurring Analytics Cowork Agent](../../01-scenarios/Recurring-Analytics-Cowork-Agent/1.Overview.md) — data owners, RLS personas and generated-output access
 - [Copilot Credits & Cost Control](../Copilot-Credits-Cost-Control/Copilot-Credits-Cost-Control.md) — the financial half of the same problem
 - [Agent Publishing & Channel Deployment](../Agent-Publishing-and-Channel-Deployment/Agent-Publishing-and-Channel-Deployment.md)
 - [Declarative vs Custom Engine Agent](../Declarative-vs-Custom-engine-agent/Declarative-Agents-vs-Copilot-Studio-Custom-Engine-Agents.md)

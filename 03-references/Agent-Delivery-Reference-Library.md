@@ -12,6 +12,23 @@ organised by the delivery question you are trying to answer rather than by produ
 
 ## 1. Choosing the Right Agent Type
 
+### Configuration-first Cowork delivery
+
+The following Cowork guidance was reviewed in September 2026; qualify current tenant
+availability and controls before delivery.
+
+| Resource | Use it for |
+|---|---|
+| [Cowork overview](https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/) | Product scope and entry points |
+| [Get started with Cowork](https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/get-started) | Enablement prerequisites |
+| [Customize Cowork](https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/cowork-customize) | Skills, companion references, plugin upload/sharing and updates |
+| [Use Cowork](https://learn.microsoft.com/en-us/microsoft-365/copilot/cowork/use-cowork) | Sessions, supported surfaces and recurring task experience |
+| In this repo: [Cowork Skill Delivery and Scheduled Reviews](../02-patterns/Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md) | Configuration-first lifecycle, source/approval boundaries and conditional recurrence |
+| In this repo: [Governed Analytics Review](../02-patterns/Governed-Analytics-Review/Governed-Analytics-Review.md) | Authoritative KPI, period and RLS validation; generated-artifact access |
+| Scenarios: [Chief of Staff](../01-scenarios/Chief-of-Staff-Cowork-Agent/1.Overview.md) and [Recurring Analytics](../01-scenarios/Recurring-Analytics-Cowork-Agent/1.Overview.md) | End-to-end runbooks, acceptance prompts and source interpretation |
+
+### Other agent implementation choices
+
 | Resource | Use it for |
 |---|---|
 | [Agents for Microsoft 365 Copilot](https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/agents-overview) | The two approaches to building agents for Microsoft 365 Copilot |

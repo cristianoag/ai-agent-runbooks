@@ -23,6 +23,17 @@ stop anything.
 
 ## How Consumption Actually Works
 
+> **Cowork applicability:** the rate and enforcement tables in this pattern describe Copilot
+> Studio, not a Cowork billing contract. For
+> [Chief of Staff](../../01-scenarios/Chief-of-Staff-Cowork-Agent/1.Overview.md) and
+> [Recurring Analytics](../../01-scenarios/Recurring-Analytics-Cowork-Agent/1.Overview.md),
+> reuse cost ownership, baseline measurement and reporting discipline, but verify current
+> Cowork entitlements, meters and supported controls in the tenant. Do not assume Studio
+> rates, licensed-user exemptions, environment caps or enforcement thresholds apply.
+> `/cost`, where available, is an approximate user signal, not billing truth.
+> Follow the [Cowork delivery pattern](../Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md)
+> and [current usage-based billing guidance](https://learn.microsoft.com/en-us/microsoft-365/copilot/usage-based-billing-overview-copilot-credits).
+
 Copilot Credits are the unit of agent consumption. The rates below apply to Copilot Studio's
 standard billing and are the numbers to reason with when estimating.
 

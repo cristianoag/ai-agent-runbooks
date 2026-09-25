@@ -185,11 +185,19 @@ is not working and you should know that before an auditor tells you.
 
 ## Related Patterns
 
+For Cowork, review the exact content, audience and destination before sending, posting, sharing,
+filing or other consequential actions. A skill instruction is not an authorization boundary:
+prove the runtime approval control or retain a manual action. Approval to create a recurring
+draft schedule does not approve distribution of all future outputs.
+
 - Runbook: [Human-in-the-Loop-Review-and-Approval-Runbook.md](Human-in-the-Loop-Review-and-Approval-Runbook.md)
 - [Intelligent Document Processing Pipeline](../Intelligent-Document-Processing-Pipeline/Intelligent-Document-Processing-Pipeline.md)
 - [Agent Governance & Rollout Control Plane](../Agent-Governance-and-Rollout-Control-Plane/Agent-Governance-and-Rollout-Control-Plane.md)
 - [Branded Office Artifact Generation](../Branded-Office-Artifact-Generation/Branded-Office-Artifact-Generation.md)
 - Scenario: [Contract & Legal Intelligence Agent](../../01-scenarios/Contract-and-Legal-Intelligence-Agent/1.Overview.md)
+- Scenario: [Chief of Staff Cowork Agent](../../01-scenarios/Chief-of-Staff-Cowork-Agent/1.Overview.md) — leadership drafts, sensitive context and schedule approval
+- Scenario: [Recurring Analytics Cowork Agent](../../01-scenarios/Recurring-Analytics-Cowork-Agent/1.Overview.md) — numerical review and separate output-access approval
+- [Cowork Skill Delivery and Scheduled Reviews](../Cowork-Skill-Delivery-and-Scheduled-Reviews/Cowork-Skill-Delivery-and-Scheduled-Reviews.md)
 
 ---
 

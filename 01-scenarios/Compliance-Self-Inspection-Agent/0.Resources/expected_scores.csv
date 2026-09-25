@@ -1,0 +1,9 @@
+file,channel,totalMatches,keywords,cat1_high,cat1_medium,cat1_low,cat2_high,cat2_medium,cat2_low,cat3_high,cat3_medium,cat3_low,cat4_high,cat4_medium,cat4_low,cat5_high,cat5_medium,cat5_low,riskScore
+Outlook_vendor_due_diligence.docx,Outlook,2,referral; commission,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,2
+Outlook_gifts_hospitality_review.pptx,Outlook,3,cash gift; gift card; business meal,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,6
+Outlook_conflict_of_interest_register.xlsx,Outlook,4,undisclosed ownership; side business; personal relationship; former employer,0,0,0,0,0,0,1,1,2,0,0,0,0,0,0,7
+Outlook_trading_window_incident.pdf,Outlook,5,material nonpublic; pre-announcement trade; blackout period; earnings call; quiet period,0,0,0,0,0,0,0,0,0,2,1,2,0,0,0,10
+OneDrive_expense_audit_summary.docx,OneDrive,2,petty cash; manual adjustment,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2
+OneDrive_third_party_risk_briefing.pptx,OneDrive,2,consultant fee; personal relationship,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,3
+OneDrive_hospitality_log.xlsx,OneDrive,4,cash gift; lavish hospitality; golf outing; business meal,0,0,0,2,1,1,0,0,0,0,0,0,0,0,0,9
+OneDrive_quarterly_compliance_digest.pdf,OneDrive,5,referral; conference invite; former employer; earnings call; petty cash,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,5
